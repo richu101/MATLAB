@@ -1,0 +1,59 @@
+% error performance of QPSK
+%00- 45degree, 01- 135degree, 10- 225degree, 11- 315degree
+%bandwidth efficency of QPSK is 2 times the BPSK
+% BER is (no of bits in error/ total no pf transmitted bit)
+%For same error rate bandwith requirment of QPSK is half that of BPSK
+clc;
+clear all;
+close all;
+N= 1e6; %1x10^6
+SNRdB= 0:1:20; %SNR for simulation
+SNRlinear= 10.^(SNRdB/10);
+BER= zeros(1,length(SNRlinear));
+SER= zeros(1,length(SNRlinear));
+B1= rand(1,N)>0.5; % in phase input signal
+B2= rand(1,N)>0.5; % out phase 
+%QPSK symbol mapping
+I= (2*B1)-1;
+Q= (2*B2)-1;
+S= I+1j*Q;
+
+% QPSK Signal Mice with AWSC
+N0=1./SNRlinear;
+
+for k= 1:length(SNRdB)
+    noise= sqrt(N0(k)/2)*(randn(1,N)+1j*randn(1,N));
+    sig_Rx = S+noise;
+    sig_I = real(sig_Rx);% In phase component of noisy received s1
+    sig_Q= imag(sig_Rx);% out phase component of noisy received s1
+    %QPSK DEMODULATION
+    
+    demod_I= sig_I>0;% I DECISION
+    demod_Q= sig_Q>0;% Q DECISION
+    I_error =(demod_I ~= B1);% inphase bit error
+    Q_error =(demod_Q ~= B2); %Q phase bit error
+    
+    Error_bit = sum(I_error)+sum(Q_error);
+    BER(k)= sum(Error_bit)/(2*N);
+end
+    % Theoritical bit error rate of QPSK is
+    %
+    %   BER=  Q(sqrt(2Eb/N0))= Q(sqrt(2SNR))
+    %    QPSK        
+    %
+    BER_theo= 2*qfunc(sqrt(2*SNRlinear));
+    figure;
+    semilogy(SNRdB, BER_theo,'r-');
+    hold on;
+    semilogy(SNRdB, BER,'g*' );
+    legend('theoritical','simulated');
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
